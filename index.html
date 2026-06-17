@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#07120d" />
+<title>Penalty Shootout S3+</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;}
+:root{
+  --bg:#07120d;--surface:#10181f;--surface2:#18232b;--surface3:#22313b;--border:rgba(255,255,255,.09);
+  --accent:#00e5a0;--accent2:#00b37d;--danger:#ff4d6d;--warning:#ffb020;--gold:#ffd60a;
+  --text:#fff;--text2:rgba(255,255,255,.66);--text3:rgba(255,255,255,.36);--shadow:rgba(0,0,0,.38);
+  --r:18px;--r2:13px;--w:min(100vw,430px);--h:min(100dvh,780px);
+}
+html,body{width:100%;height:100%;background:radial-gradient(circle at 50% 0%,#123225 0%,#07120d 48%,#040707 100%);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',Roboto,Helvetica,Arial,sans-serif;overflow:hidden;color:var(--text);}
+body{display:grid;place-items:center;}
+button{font-family:inherit;}
+#root{width:var(--w);height:var(--h);min-height:650px;max-height:800px;position:relative;overflow:hidden;background:#07120d;border-inline:1px solid rgba(255,255,255,.04);box-shadow:0 26px 80px rgba(0,0,0,.35);}
+#root::before{content:"";position:absolute;inset:-20%;background:radial-gradient(circle at 50% 12%,rgba(0,229,160,.16),transparent 27%),radial-gradient(circle at 88% 22%,rgba(255,214,10,.10),transparent 22%);pointer-events:none;z-index:0;}
+.screen{position:absolute;inset:0;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px;opacity:0;pointer-events:none;transform:translateY(10px);transition:opacity .28s ease,transform .28s ease;}
+.screen.active{opacity:1;pointer-events:auto;transform:translateY(0);}
+.hidden{display:none!important;}
+.logo-wrap{position:relative;margin-bottom:24px;}
+.logo-ring{width:94px;height:94px;border-radius:50%;border:1.5px solid rgba(0,229,160,.8);display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.02));animation:pulse 2.2s ease-in-out infinite;}
+.logo-inner{font-size:43px;filter:drop-shadow(0 10px 12px rgba(0,0,0,.45));}
+.logo-spark{position:absolute;right:-6px;top:6px;background:var(--gold);color:#141414;border-radius:999px;padding:5px 9px;font-size:11px;font-weight:900;letter-spacing:.2px;box-shadow:0 10px 24px rgba(255,214,10,.25);}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(0,229,160,.30)}50%{box-shadow:0 0 0 18px rgba(0,229,160,0)}}
+.game-title{font-size:38px;font-weight:900;letter-spacing:-1.6px;text-align:center;line-height:.92;text-shadow:0 16px 32px rgba(0,0,0,.45);}
+.game-title span{color:var(--accent);}
+.game-sub{font-size:13px;color:var(--text2);text-align:center;margin:10px 0 22px;line-height:1.35;}
+.stats-strip{width:100%;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px;}
+.stat-pill{background:rgba(255,255,255,.045);border:1px solid var(--border);border-radius:14px;padding:10px 8px;text-align:center;}
+.stat-val{font-size:17px;font-weight:900;color:var(--text);letter-spacing:-.4px;}
+.stat-lbl{font-size:9px;letter-spacing:.9px;text-transform:uppercase;color:var(--text3);margin-top:2px;}
+.rules-card{background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.025));border:1px solid var(--border);border-radius:var(--r);padding:16px;width:100%;box-shadow:0 18px 55px rgba(0,0,0,.16);}
+.rule-row{display:flex;align-items:center;gap:12px;padding:9px 0;}
+.rule-row+.rule-row{border-top:1px solid var(--border);}
+.rule-icon{width:36px;height:36px;border-radius:12px;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.rule-text{font-size:12.8px;color:var(--text2);line-height:1.4;}
+.rule-text b{color:var(--text);font-weight:700;}
+.mode-card{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0 16px;}
+.mode-btn{min-height:58px;border:1px solid var(--border);border-radius:15px;background:rgba(255,255,255,.035);color:var(--text);padding:10px;cursor:pointer;text-align:left;transition:transform .13s,background .13s,border-color .13s;}
+.mode-btn:active{transform:scale(.98);}
+.mode-btn.active{border-color:rgba(0,229,160,.7);background:rgba(0,229,160,.10);}
+.mode-name{display:block;font-size:13px;font-weight:850;}
+.mode-desc{display:block;font-size:10.5px;color:var(--text3);margin-top:3px;line-height:1.2;}
+.btn-primary,.btn-secondary,.btn-mini{border:none;cursor:pointer;transition:transform .12s,opacity .12s,background .12s,border-color .12s;}
+.btn-primary{width:100%;height:54px;background:linear-gradient(180deg,var(--accent),var(--accent2));color:#00150f;border-radius:var(--r2);font-size:16px;font-weight:900;letter-spacing:-.3px;box-shadow:0 16px 38px rgba(0,229,160,.18);}
+.btn-primary:active,.btn-secondary:active,.btn-mini:active{transform:scale(.975);opacity:.92;}
+.btn-secondary{width:100%;height:48px;background:rgba(255,255,255,.035);color:var(--text2);border:1px solid var(--border);border-radius:var(--r2);font-size:15px;font-weight:700;margin-top:10px;}
+.btn-mini{height:34px;padding:0 12px;background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--text2);border-radius:999px;font-size:12px;font-weight:750;}
+#s-game{padding:0;justify-content:flex-start;background:#07120d;}
+.topbar{width:100%;padding:12px 16px 0;position:relative;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.icon-btn{width:38px;height:38px;border-radius:14px;border:1px solid var(--border);background:rgba(255,255,255,.045);color:var(--text);font-size:17px;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.hud{width:100%;padding:8px 18px 0;display:grid;grid-template-columns:78px 1fr 78px;align-items:start;gap:10px;position:relative;z-index:20;}
+.hud-score{display:flex;flex-direction:column;align-items:center;gap:2px;background:rgba(0,0,0,.16);border:1px solid rgba(255,255,255,.045);border-radius:16px;padding:8px 5px;}
+.hud-num{font-size:30px;font-weight:950;letter-spacing:-1.2px;color:var(--text);line-height:1;}
+.hud-label{font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--text3);}
+.hud-center{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0;}
+.phase-badge{background:rgba(255,255,255,.065);border:1px solid var(--border);border-radius:999px;padding:6px 12px;font-size:11px;color:var(--text2);font-weight:850;white-space:nowrap;}
+.mini-state{font-size:10.5px;color:var(--text3);text-align:center;min-height:14px;}
+.dots-wrap{width:100%;display:grid;gap:5px;}
+.dots-line{display:flex;align-items:center;gap:5px;justify-content:center;}
+.dots-name{font-size:8px;color:var(--text3);width:18px;text-align:right;text-transform:uppercase;font-weight:900;letter-spacing:.8px;}
+.sdot{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.06);border:1px solid var(--border);transition:background .25s,border .25s,transform .25s;}
+.sdot.scored{background:var(--accent);border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,229,160,.08);}
+.sdot.missed{background:var(--danger);border-color:var(--danger);box-shadow:0 0 0 3px rgba(255,77,109,.08);}
+.sdot.current{transform:scale(1.22);border-color:rgba(255,255,255,.36);}
+.timer-wrap{width:100%;padding:10px 20px 0;position:relative;z-index:20;}
+.timer-track{height:4px;background:rgba(255,255,255,.07);border-radius:999px;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.04);}
+.timer-fill{height:100%;border-radius:999px;background:var(--accent);transition:width .08s linear,background .2s;}
+.pitch-wrap{position:relative;width:100%;flex:1;overflow:hidden;min-height:0;}
+.pitch{position:absolute;inset:0;overflow:hidden;background:linear-gradient(180deg,#0b2b12 0%,#15511e 40%,#1b6a26 70%,#15511e 100%);}
+.pitch::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.035) 0,rgba(255,255,255,.035) 1px,transparent 1px,transparent 64px),radial-gradient(ellipse at 50% 82%,rgba(255,255,255,.12),transparent 22%);opacity:.6;}
+.pitch::after{content:"";position:absolute;left:50%;bottom:42px;width:260px;height:128px;transform:translateX(-50%);border:2px solid rgba(255,255,255,.13);border-radius:130px 130px 0 0;border-bottom:0;}
+.grain{position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.05) 1px,transparent 1px);background-size:18px 18px;opacity:.12;}
+.goal-area{position:absolute;top:18px;left:50%;transform:translateX(-50%);width:72%;max-width:300px;height:106px;z-index:4;}
+.goal-net{position:absolute;inset:0;background:repeating-linear-gradient(90deg,rgba(255,255,255,.075) 0,rgba(255,255,255,.075) 1px,transparent 1px,transparent 22px),repeating-linear-gradient(0deg,rgba(255,255,255,.075) 0,rgba(255,255,255,.075) 1px,transparent 1px,transparent 20px);transform:perspective(220px) rotateX(5deg);}
+.goalpost{position:absolute;background:#f2f2f2;border-radius:4px;box-shadow:0 6px 12px rgba(0,0,0,.24);}
+.gp-l{left:-5px;top:0;width:10px;height:112px}.gp-r{right:-5px;top:0;width:10px;height:112px}.gp-top{top:-5px;left:-5px;right:-5px;height:10px}.goal-shadow{position:absolute;bottom:-10px;left:8px;right:8px;height:11px;background:rgba(0,0,0,.42);filter:blur(7px);border-radius:50%;}
+.target-grid{position:absolute;inset:10px 7px 2px 7px;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(2,1fr);gap:4px;opacity:0;transform:scale(.98);transition:opacity .2s,transform .2s;pointer-events:none;z-index:5;}
+.target-grid.show{opacity:1;transform:scale(1);}
+.tcell{border:1px dashed rgba(255,255,255,.24);border-radius:10px;background:rgba(255,255,255,.025);}
+.penalty-spot{position:absolute;bottom:118px;left:50%;transform:translateX(-50%);width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.48);z-index:2;box-shadow:0 0 0 12px rgba(255,255,255,.025);}
+#keeper{position:absolute;top:44px;left:calc(50% - 26px);width:52px;height:72px;z-index:10;touch-action:none;filter:drop-shadow(0 12px 16px rgba(0,0,0,.28));}
+.keeper-body{width:52px;height:72px;position:relative;display:flex;flex-direction:column;align-items:center;}
+.keeper-head{width:29px;height:29px;border-radius:50%;background:#f2c196;border:2px solid rgba(255,255,255,.35);display:flex;align-items:center;justify-content:center;font-size:14px;z-index:2;transition:transform .18s;}
+.keeper-shirt{width:41px;height:33px;border-radius:8px 8px 3px 3px;background:linear-gradient(180deg,#ff7c3a,#de4f18);margin-top:-5px;display:flex;align-items:center;justify-content:center;font-size:10px;color:rgba(255,255,255,.86);font-weight:950;}
+.keeper-pants{width:31px;height:11px;background:#171a2c;border-radius:3px;margin-top:2px;}
+.keeper-gloves{position:absolute;top:31px;display:flex;gap:39px;transition:gap .18s;}.glove{width:11px;height:15px;background:#ffdc4a;border-radius:6px;border:1px solid rgba(255,255,255,.35);}
+.keeper-shadow{width:35px;height:7px;background:rgba(0,0,0,.38);border-radius:50%;margin-top:3px;filter:blur(4px);}
+#keeper.dive-left .keeper-body{transform:rotate(-18deg) translateX(-12px)}#keeper.dive-right .keeper-body{transform:rotate(18deg) translateX(12px)}#keeper.stretch .keeper-gloves{gap:52px}#keeper.stretch .keeper-head{transform:translateY(-2px)}
+#ball{position:absolute;bottom:112px;left:calc(50% - 22px);width:44px;height:44px;z-index:12;touch-action:none;filter:drop-shadow(0 14px 12px rgba(0,0,0,.32));}
+.ball-svg{width:44px;height:44px;display:block}.ball-shadow{width:32px;height:8px;background:rgba(0,0,0,.42);border-radius:50%;margin:-2px auto 0;filter:blur(4px);}
+#drag-canvas,#fx-canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:11;}#fx-canvas{z-index:19;}
+#feedback{position:absolute;top:46%;left:50%;transform:translate(-50%,-50%) scale(.96);z-index:30;pointer-events:none;opacity:0;transition:opacity .18s,transform .18s;}
+#feedback.show{opacity:1;transform:translate(-50%,-50%) scale(1);}.fb-pill{background:rgba(5,8,10,.82);border:1px solid var(--border);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-radius:999px;padding:13px 24px;display:flex;align-items:center;gap:10px;box-shadow:0 20px 60px rgba(0,0,0,.28);}.fb-icon{font-size:25px}.fb-text{font-size:17px;font-weight:950;white-space:nowrap;}
+#instruction{position:absolute;left:12px;right:12px;bottom:18px;display:flex;flex-direction:column;gap:8px;align-items:center;z-index:21;}.inst-pill{max-width:100%;background:rgba(5,8,10,.66);border:1px solid var(--border);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-radius:999px;padding:10px 16px;font-size:12.5px;color:var(--text2);display:flex;align-items:center;gap:7px;box-shadow:0 12px 34px rgba(0,0,0,.18);}.power-row{width:min(260px,80%);height:7px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden;opacity:0;transition:opacity .16s;}.power-row.show{opacity:1}.power-fill{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--warning),var(--danger));border-radius:999px;}
+.result-top{display:flex;flex-direction:column;align-items:center;margin-bottom:22px;}.result-icon-wrap{width:96px;height:96px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:48px;margin-bottom:15px;border:2px solid;box-shadow:0 20px 50px rgba(0,0,0,.22);}.win-icon-wrap{background:rgba(0,229,160,.1);border-color:var(--accent)}.lose-icon-wrap{background:rgba(255,77,109,.1);border-color:var(--danger)}.draw-icon-wrap{background:rgba(255,214,10,.1);border-color:var(--gold)}.result-title{font-size:31px;font-weight:950;letter-spacing:-1.2px}.win-title{color:var(--accent)}.lose-title{color:var(--danger)}.draw-title{color:var(--gold)}.result-sub{font-size:14px;color:var(--text2);margin-top:6px;text-align:center;}
+.score-card{background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.025));border:1px solid var(--border);border-radius:var(--r);padding:16px 24px;display:flex;gap:0;align-items:center;justify-content:center;margin-bottom:14px;width:100%;}.sc-num{font-size:46px;font-weight:950;letter-spacing:-2px}.sc-you{color:var(--accent)}.sc-sep{font-size:28px;color:var(--text3);margin:0 16px;font-weight:300}.sc-cpu{color:var(--text2)}.sc-labels{display:flex;justify-content:space-between;width:100%;padding:0 8px;margin-top:-6px;margin-bottom:14px}.sc-lbl{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--text3)}
+.final-detail{width:100%;background:rgba(255,255,255,.035);border:1px solid var(--border);border-radius:16px;padding:13px;margin-bottom:14px;}.final-row{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--text2);padding:4px 0}.final-row b{color:var(--text);}.qr-card{background:linear-gradient(180deg,rgba(0,229,160,.09),rgba(255,255,255,.025));border:1px solid rgba(0,229,160,.22);border-radius:var(--r);padding:17px;width:100%;display:flex;flex-direction:column;align-items:center;margin-bottom:16px;}.qr-title{font-size:12px;font-weight:950;letter-spacing:.5px;color:var(--accent);text-transform:uppercase;margin-bottom:11px}.qr-frame{width:150px;height:150px;background:#fff;border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:10px;overflow:hidden;padding:1px}.qr-frame img{width:148px;height:148px;display:block}.qr-claim{font-size:14px;color:var(--text);font-weight:850;text-align:center}.qr-hint{font-size:11px;color:var(--text3);text-align:center;margin-top:4px;word-break:break-all}.end-actions{width:100%;}
+.toast{position:absolute;left:50%;bottom:18px;transform:translateX(-50%) translateY(20px);opacity:0;background:rgba(8,12,16,.86);border:1px solid var(--border);border-radius:999px;color:var(--text2);font-size:12px;font-weight:800;padding:10px 14px;z-index:60;transition:opacity .2s,transform .2s;pointer-events:none;}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.pause-modal{position:absolute;inset:0;background:rgba(0,0,0,.55);z-index:50;display:none;place-items:center;padding:28px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);}.pause-modal.show{display:grid}.pause-card{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:22px;padding:22px;text-align:center;box-shadow:0 24px 80px rgba(0,0,0,.35);}.pause-title{font-size:24px;font-weight:950;margin-bottom:8px}.pause-text{font-size:13px;color:var(--text2);line-height:1.4;margin-bottom:18px}.kbd{display:none;font-size:10px;color:var(--text3);margin-top:4px}@media (pointer:fine){.kbd{display:block}}
+@media (max-height:690px){#root{min-height:100dvh}.logo-ring{width:76px;height:76px}.logo-inner{font-size:34px}.game-title{font-size:32px}.rules-card{padding:12px}.rule-row{padding:7px 0}.result-icon-wrap{width:82px;height:82px;font-size:40px}.score-card{padding:12px}.sc-num{font-size:39px}}
+</style>
+</head>
+<body>
+<div id="root">
+  <section class="screen active" id="s-start" aria-label="Inicio">
+    <div class="logo-wrap"><div class="logo-ring"><div class="logo-inner">⚽</div></div><div class="logo-spark">S3+</div></div>
+    <h1 class="game-title">Penalty<br><span>Shootout</span></h1>
+    <p class="game-sub">Tanda de penales con IA, muerte súbita, dificultad y ranking local.</p>
+    <div class="stats-strip">
+      <div class="stat-pill"><div class="stat-val" id="home-best">0</div><div class="stat-lbl">Mejor</div></div>
+      <div class="stat-pill"><div class="stat-val" id="home-wins">0</div><div class="stat-lbl">Victorias</div></div>
+      <div class="stat-pill"><div class="stat-val" id="home-rate">0%</div><div class="stat-lbl">Efectividad</div></div>
+    </div>
+    <div class="rules-card">
+      <div class="rule-row"><div class="rule-icon">👆</div><div class="rule-text"><b>Arrastra el balón</b> hacia la portería. La fuerza y dirección cambian el tiro.</div></div>
+      <div class="rule-row"><div class="rule-icon">🧤</div><div class="rule-text"><b>Mueve al portero</b> antes de que la CPU dispare. Ataja si estás cerca.</div></div>
+      <div class="rule-row"><div class="rule-icon">🔥</div><div class="rule-text"><b>Empate real</b>: después de 5 rondas entra muerte súbita.</div></div>
+    </div>
+    <div class="mode-card" role="group" aria-label="Dificultad">
+      <button class="mode-btn active" data-mode="normal"><span class="mode-name">Normal</span><span class="mode-desc">Ideal para evento / pantallas</span></button>
+      <button class="mode-btn" data-mode="pro"><span class="mode-name">Pro</span><span class="mode-desc">Portero CPU predice mejor</span></button>
+    </div>
+    <button class="btn-primary" id="btn-start">Comenzar partido</button>
+    <button class="btn-secondary" id="btn-reset-stats">Borrar ranking local</button>
+  </section>
+
+  <section class="screen" id="s-game" aria-label="Juego">
+    <div class="topbar">
+      <button class="icon-btn" id="btn-home" aria-label="Volver">⌂</button>
+      <button class="btn-mini" id="btn-status">Ronda 1</button>
+      <button class="icon-btn" id="btn-mute" aria-label="Sonido">🔊</button>
+    </div>
+    <div class="hud">
+      <div class="hud-score"><div class="hud-num" id="h-you">0</div><div class="hud-label">Tú</div></div>
+      <div class="hud-center">
+        <div class="dots-wrap" id="dots-wrap"></div>
+        <div class="phase-badge" id="phase-badge">⚽ Tiro</div>
+        <div class="mini-state" id="mini-state">Ronda 1 de 5</div>
+      </div>
+      <div class="hud-score"><div class="hud-num" id="h-cpu">0</div><div class="hud-label">CPU</div></div>
+    </div>
+    <div class="timer-wrap"><div class="timer-track"><div class="timer-fill" id="timer-fill"></div></div></div>
+    <div class="pitch-wrap">
+      <div class="pitch" id="pitch">
+        <div class="grain"></div>
+        <div class="goal-area" id="goal-area">
+          <div class="goal-net"></div><div class="goalpost gp-l"></div><div class="goalpost gp-r"></div><div class="goalpost gp-top"></div><div class="goal-shadow"></div>
+          <div class="target-grid" id="target-grid"><div class="tcell"></div><div class="tcell"></div><div class="tcell"></div><div class="tcell"></div><div class="tcell"></div><div class="tcell"></div></div>
+        </div>
+        <div class="penalty-spot"></div>
+        <div id="keeper"><div class="keeper-body"><div class="keeper-head">😐</div><div class="keeper-shirt">GK</div><div class="keeper-pants"></div><div class="keeper-gloves"><div class="glove"></div><div class="glove"></div></div><div class="keeper-shadow"></div></div></div>
+        <canvas id="drag-canvas"></canvas><canvas id="fx-canvas"></canvas>
+        <div id="ball">
+          <svg class="ball-svg" viewBox="0 0 44 44" aria-hidden="true">
+            <circle cx="22" cy="22" r="20" fill="#f2f2f2" stroke="#161616" stroke-width="1.6"/>
+            <path d="M22 4 L29 15 L38 12 L38 32 L29 29 L22 40 L15 29 L6 32 L6 12 L15 15 Z" fill="none" stroke="#111" stroke-width="1" opacity=".18"/>
+            <polygon points="22,8 27,14 22,20 17,14" fill="#181818" opacity=".82"/><polygon points="33,14 37,21 31,25 28,17" fill="#181818" opacity=".74"/><polygon points="11,14 16,17 13,25 7,21" fill="#181818" opacity=".74"/><polygon points="29,29 31,25 37,28 33,34" fill="#181818" opacity=".66"/><polygon points="15,29 13,25 7,28 11,34" fill="#181818" opacity=".66"/><polygon points="22,34 17,29 22,24 27,29" fill="#181818" opacity=".76"/><circle cx="15" cy="14" r="3.2" fill="rgba(255,255,255,.55)"/>
+          </svg><div class="ball-shadow"></div>
+        </div>
+        <div id="feedback"><div class="fb-pill"><div class="fb-icon" id="fb-icon"></div><div class="fb-text" id="fb-text"></div></div></div>
+        <div id="instruction"><div class="inst-pill"><span id="inst-icon">👆</span><span id="inst-text">Arrastra el balón hacia la portería</span></div><div class="power-row" id="power-row"><div class="power-fill" id="power-fill"></div></div><div class="kbd">Mouse/touch: arrastra · Teclado: flechas para portero · Espacio para pausa</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen" id="s-end" aria-label="Resultado">
+    <div class="result-top"><div class="result-icon-wrap" id="result-icon">🏆</div><div class="result-title" id="result-title">¡Ganaste!</div><div class="result-sub" id="result-sub">Reclama tu recompensa</div></div>
+    <div class="score-card"><div class="sc-num sc-you" id="e-you">0</div><div class="sc-sep">–</div><div class="sc-num sc-cpu" id="e-cpu">0</div></div>
+    <div class="sc-labels"><span class="sc-lbl">Tú</span><span class="sc-lbl">CPU</span></div>
+    <div class="final-detail" id="final-detail"></div>
+    <div class="qr-card" id="qr-card"><div class="qr-title">🎁 Claim your reward</div><div class="qr-frame"><img id="qr-img" src="" alt="QR de recompensa"></div><div class="qr-claim">Scan to claim your reward</div><div class="qr-hint" id="qr-hint"></div></div>
+    <div class="end-actions"><button class="btn-primary" id="btn-rematch">Jugar de nuevo</button><button class="btn-secondary" id="btn-menu">Menú principal</button></div>
+  </section>
+
+  <div class="pause-modal" id="pause-modal"><div class="pause-card"><div class="pause-title">Pausa</div><div class="pause-text">Puedes continuar el partido o volver al menú. El marcador actual no se guarda como victoria.</div><button class="btn-primary" id="btn-resume">Continuar</button><button class="btn-secondary" id="btn-quit">Salir al menú</button></div></div>
+  <div class="toast" id="toast">Listo</div>
+</div>
+
+<script>
+(() => {
+  'use strict';
+
+  const CONFIG = {
+    MAX_ROUNDS: 5,
+    TURN_MS: 3300,
+    TICK_MS: 40,
+
+    // Cada dispositivo/tótem debe abrir el juego con:
+    // index.html?device=totem01
+    // index.html?device=totem02
+    DEFAULT_DEVICE: 'default',
+    DEVICE_STORAGE_KEY: 'penalty_s3_plus_device_v1',
+    DEVICE_REWARDS: {
+      default: {
+        name: 'Dispositivo no configurado',
+        qrImage: '',
+        qrTitle: '⚠️ Device not configured',
+        claimText: 'Ask staff for help',
+        hint: 'Missing ?device=DEVICE_ID in the URL'
+      },
+      "planet-hollywood": {
+        name: "Planet Hollywood · México",
+        qrImage: "qrs/mexico/cancun/planet-hollywood.png",
+        qrTitle: '🎁 Claim your reward',
+        claimText: 'Scan to claim your reward',
+        hint: "planet-hollywood"
+      },
+      "princess-riviera": {
+        name: "Princess Riviera · México",
+        qrImage: "qrs/mexico/cancun/princess-riviera.png",
+        qrTitle: '🎁 Claim your reward',
+        claimText: 'Scan to claim your reward',
+        hint: "princess-riviera"
+      },
+      "roy-chic": {
+        name: "Roy Chic · México",
+        qrImage: "qrs/mexico/cancun/roy-chic.png",
+        qrTitle: '🎁 Claim your reward',
+        claimText: 'Scan to claim your reward',
+        hint: "roy-chic"
+      },
+      "roy-mystique": {
+        name: "Roy Mystique · México",
+        qrImage: "qrs/mexico/cancun/roy-mystique.png",
+        qrTitle: '🎁 Claim your reward',
+        claimText: 'Scan to claim your reward',
+        hint: "roy-mystique"
+      },
+      "roy-riviera-totem-hideaway": {
+        name: "Roy Riviera Totem Hideaway · México",
+        qrImage: "qrs/mexico/cancun/roy-riviera-totem-hideaway.png",
+        qrTitle: '🎁 Claim your reward',
+        claimText: 'Scan to claim your reward',
+        hint: "roy-riviera-totem-hideaway"
+      },
+      "roy-riviera": {
+        name: "Roy Riviera · México",
+        qrImage: "qrs/mexico/cancun/roy-riviera.png",
+        qrTitle: '🎁 Claim your reward',
+        claimText: 'Scan to claim your reward',
+        hint: "roy-riviera"
+      },
+      "decameron": {
+        name: "Decameron · México",
+        qrImage: "qrs/mexico/puerto-vallarta/decameron.png",
+        qrTitle: '🎁 Claim your reward',
+        claimText: 'Scan to claim your reward',
+        hint: "decameron"
+      },
+      "delta": {
+        name: "Delta · México",
+        qrImage: "qrs/mexico/puerto-vallarta/delta.png",
+        qrTitle: '🎁 Claim your reward',
+        claimText: 'Scan to claim your reward',
+        hint: "delta"
+      },
+      "krystal": {
+        name: "Krystal · México",
+        qrImage: "qrs/mexico/puerto-vallarta/krystal.png",
+        qrTitle: '🎁 Claim your reward',
+        claimText: 'Scan to claim your reward',
+        hint: "krystal"
+      },
+      "apto-jamaica-3752993": {
+        name: "Apto Jamaica 3752993 · Islas",
+        qrImage: "qrs/islas/apto-jamaica-3752993.png",
+        qrTitle: '🎁 Claim your reward',
+        claimText: 'Scan to claim your reward',
+        hint: "apto-jamaica-3752993"
+      },
+      "bavaro-princess-3752988": {
+        name: "Bavaro Princess 3752988 · Islas",
+        qrImage: "qrs/islas/bavaro-princess-3752988.png",
+        qrTitle: '🎁 Claim your reward',
+        claimText: 'Scan to claim your reward',
+        hint: "bavaro-princess-3752988"
+      },
+      "caribe-princess-3752987": {
+        name: "Caribe Princess 3752987 · Islas",
+        qrImage: "qrs/islas/caribe-princess-3752987.png",
+        qrTitle: '🎁 Claim your reward',
+        claimText: 'Scan to claim your reward',
+        hint: "caribe-princess-3752987"
+      },
+      "eurostars-3752992": {
+        name: "Eurostars 3752992 · Islas",
+        qrImage: "qrs/islas/eurostars-3752992.png",
+        qrTitle: '🎁 Claim your reward',
+        claimText: 'Scan to claim your reward',
+        hint: "eurostars-3752992"
+      },
+      "lopesan-3752989": {
+        name: "Lopesan 3752989 · Islas",
+        qrImage: "qrs/islas/lopesan-3752989.png",
+        qrTitle: '🎁 Claim your reward',
+        claimText: 'Scan to claim your reward',
+        hint: "lopesan-3752989"
+      },
+      "ph-costa-rica-3752994": {
+        name: "PH Costa Rica 3752994 · Islas",
+        qrImage: "qrs/islas/ph-costa-rica-3752994.png",
+        qrTitle: '🎁 Claim your reward',
+        claimText: 'Scan to claim your reward',
+        hint: "ph-costa-rica-3752994"
+      },
+      "ry-antigua-3752971": {
+        name: "RY Antigua 3752971 · Islas",
+        qrImage: "qrs/islas/ry-antigua-3752971.png",
+        qrTitle: '🎁 Claim your reward',
+        claimText: 'Scan to claim your reward',
+        hint: "ry-antigua-3752971"
+      },
+      "ry-antigua-chic-3752972": {
+        name: "RY Antigua Chic 3752972 · Islas",
+        qrImage: "qrs/islas/ry-antigua-chic-3752972.png",
+        qrTitle: '🎁 Claim your reward',
+        claimText: 'Scan to claim your reward',
+        hint: "ry-antigua-chic-3752972"
+      },
+      "ry-barbados-3752973": {
+        name: "RY Barbados 3752973 · Islas",
+        qrImage: "qrs/islas/ry-barbados-3752973.png",
+        qrTitle: '🎁 Claim your reward',
+        claimText: 'Scan to claim your reward',
+        hint: "ry-barbados-3752973"
+      },
+      "ry-bavaro-3752974": {
+        name: "RY Bavaro 3752974 · Islas",
+        qrImage: "qrs/islas/ry-bavaro-3752974.png",
+        qrTitle: '🎁 Claim your reward',
+        claimText: 'Scan to claim your reward',
+        hint: "ry-bavaro-3752974"
+      },
+      "ry-grenada-3752978": {
+        name: "RY Grenada 3752978 · Islas",
+        qrImage: "qrs/islas/ry-grenada-3752978.png",
+        qrTitle: '🎁 Claim your reward',
+        claimText: 'Scan to claim your reward',
+        hint: "ry-grenada-3752978"
+      },
+      "ry-puj-3752976": {
+        name: "RY PUJ 3752976 · Islas",
+        qrImage: "qrs/islas/ry-puj-3752976.png",
+        qrTitle: '🎁 Claim your reward',
+        claimText: 'Scan to claim your reward',
+        hint: "ry-puj-3752976"
+      },
+      "ry-puj-chic-3752975": {
+        name: "RY PUJ Chic 3752975 · Islas",
+        qrImage: "qrs/islas/ry-puj-chic-3752975.png",
+        qrTitle: '🎁 Claim your reward',
+        claimText: 'Scan to claim your reward',
+        hint: "ry-puj-chic-3752975"
+      },
+      "ry-puj-splash-3752977": {
+        name: "RY PUJ Splash 3752977 · Islas",
+        qrImage: "qrs/islas/ry-puj-splash-3752977.png",
+        qrTitle: '🎁 Claim your reward',
+        claimText: 'Scan to claim your reward',
+        hint: "ry-puj-splash-3752977"
+      },
+      "ry-st-lucia-3752979": {
+        name: "RY St Lucia 3752979 · Islas",
+        qrImage: "qrs/islas/ry-st-lucia-3752979.png",
+        qrTitle: '🎁 Claim your reward',
+        claimText: 'Scan to claim your reward',
+        hint: "ry-st-lucia-3752979"
+      },
+      "sonesta-3752991": {
+        name: "Sonesta 3752991 · Islas",
+        qrImage: "qrs/islas/sonesta-3752991.png",
+        qrTitle: '🎁 Claim your reward',
+        claimText: 'Scan to claim your reward',
+        hint: "sonesta-3752991"
+      },
+      "vista-sol-3752990": {
+        name: "Vista Sol 3752990 · Islas",
+        qrImage: "qrs/islas/vista-sol-3752990.png",
+        qrTitle: '🎁 Claim your reward',
+        claimText: 'Scan to claim your reward',
+        hint: "vista-sol-3752990"
+      }
+    },
+
+    STORAGE_KEY: 'penalty_s3_plus_stats_v1',
+    GOAL_RATE_NORMAL: 0.72,
+    GOAL_RATE_PRO: 0.62
+  };
+
+  const $ = (id) => document.getElementById(id);
+  const root = $('root');
+  const pitch = $('pitch');
+  const ball = $('ball');
+  const keeper = $('keeper');
+  const dragCanvas = $('drag-canvas');
+  const fxCanvas = $('fx-canvas');
+  const dragCtx = dragCanvas.getContext('2d');
+  const fxCtx = fxCanvas.getContext('2d');
+  const rnd = (min, max) => min + Math.random() * (max - min);
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+  const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+  function normalizeDeviceId(value){
+    return String(value || '').trim().toLowerCase().replace(/[^a-z0-9_-]/g, '');
+  }
+
+  function getDeviceId(){
+    const params = new URLSearchParams(window.location.search);
+    const fromUrl = normalizeDeviceId(params.get('device') || params.get('d') || params.get('qr'));
+    if(fromUrl && CONFIG.DEVICE_REWARDS[fromUrl]){
+      localStorage.setItem(CONFIG.DEVICE_STORAGE_KEY, fromUrl);
+      return fromUrl;
+    }
+    if(fromUrl && !CONFIG.DEVICE_REWARDS[fromUrl]){
+      localStorage.removeItem(CONFIG.DEVICE_STORAGE_KEY);
+      return CONFIG.DEFAULT_DEVICE;
+    }
+
+    const fromStorage = normalizeDeviceId(localStorage.getItem(CONFIG.DEVICE_STORAGE_KEY));
+    if(fromStorage && CONFIG.DEVICE_REWARDS[fromStorage]) return fromStorage;
+
+    return CONFIG.DEFAULT_DEVICE;
+  }
+
+  function getDeviceReward(){
+    const id = getDeviceId();
+    return {id, ...CONFIG.DEVICE_REWARDS[id]};
+  }
+
+  function buildRewardUrl(){
+    const reward = getDeviceReward();
+    const url = new URL(reward.rewardUrl, window.location.href);
+    url.searchParams.set('device', reward.id);
+    url.searchParams.set('score', `${G.you}-${G.cpu}`);
+    url.searchParams.set('mode', currentMode);
+    url.searchParams.set('ts', Date.now().toString());
+    return url.toString();
+  }
+
+  function getSafeDisplayUrl(url){
+    return String(url || '').replace(/^https?:\/\//,'').split('?')[0];
+  }
+
+  let audioCtx = null;
+  let G = null;
+  let currentMode = 'normal';
+  let muted = false;
+  let rafParticles = 0;
+  let particles = [];
+
+  function defaultStats(){return {wins:0,plays:0,bestDiff:0,goals:0,shots:0,saves:0,defends:0};}
+  function loadStats(){try{return {...defaultStats(), ...JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEY) || '{}')};}catch{return defaultStats();}}
+  function saveStats(stats){localStorage.setItem(CONFIG.STORAGE_KEY, JSON.stringify(stats));}
+  function updateHomeStats(){
+    const s = loadStats();
+    $('home-best').textContent = s.bestDiff;
+    $('home-wins').textContent = s.wins;
+    $('home-rate').textContent = s.shots ? Math.round((s.goals/s.shots)*100)+'%' : '0%';
+  }
+
+  function goTo(id){
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    $(id).classList.add('active');
+  }
+  function toast(text){
+    const t = $('toast'); t.textContent = text; t.classList.add('show');
+    clearTimeout(t._to); t._to = setTimeout(()=>t.classList.remove('show'), 1400);
+  }
+
+  function playTone(type){
+    if(muted) return;
+    try{
+      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      const o = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      o.connect(g); g.connect(audioCtx.destination);
+      const now = audioCtx.currentTime;
+      const map = {
+        tap:[520,.035], goal:[660,.12], save:[420,.12], miss:[160,.16], win:[880,.18], lose:[130,.18]
+      };
+      const [freq,dur] = map[type] || map.tap;
+      o.frequency.setValueAtTime(freq, now);
+      if(type === 'goal' || type === 'win') o.frequency.exponentialRampToValueAtTime(freq*1.35, now+dur);
+      if(type === 'miss' || type === 'lose') o.frequency.exponentialRampToValueAtTime(Math.max(60,freq*.55), now+dur);
+      g.gain.setValueAtTime(.0001, now);
+      g.gain.exponentialRampToValueAtTime(.06, now+.015);
+      g.gain.exponentialRampToValueAtTime(.0001, now+dur);
+      o.start(now); o.stop(now+dur+.02);
+    }catch(e){}
+  }
+
+  function resizeCanvases(){
+    const r = pitch.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    [dragCanvas, fxCanvas].forEach(c => {
+      c.width = Math.floor(r.width*dpr); c.height = Math.floor(r.height*dpr);
+      c.style.width = r.width+'px'; c.style.height = r.height+'px';
+      const ctx = c.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0);
+    });
+  }
+  window.addEventListener('resize', resizeCanvases);
+
+  function pitchRect(){return pitch.getBoundingClientRect();}
+  function goalBox(){
+    const pr = pitchRect(); const gr = $('goal-area').getBoundingClientRect();
+    return {left: gr.left-pr.left, top: gr.top-pr.top, right: gr.right-pr.left, bottom: gr.bottom-pr.top, width: gr.width, height: gr.height};
+  }
+  function setBall(x,y,transition='none',scale=1,rot=0){
+    ball.style.transition = transition;
+    ball.style.left = (x-22)+'px'; ball.style.top = (y-22)+'px'; ball.style.bottom = 'auto';
+    ball.style.transform = `scale(${scale}) rotate(${rot}deg)`;
+  }
+  function ballCenter(){
+    const pr = pitchRect(); const r = ball.getBoundingClientRect();
+    return {x:r.left-pr.left+r.width/2,y:r.top-pr.top+r.height/2};
+  }
+  function setKeeperCenter(x,transition='none',y=null){
+    const pr = pitchRect();
+    const maxX = pr.width - 34;
+    const cx = clamp(x, 34, maxX);
+    keeper.style.transition = transition;
+    keeper.style.left = (cx-26)+'px';
+    if(y !== null) keeper.style.top = (y-36)+'px';
+    return cx;
+  }
+  function keeperCenter(){
+    const pr = pitchRect(); const r = keeper.getBoundingClientRect();
+    return {x:r.left-pr.left+r.width/2,y:r.top-pr.top+r.height/2};
+  }
+  function resetActors(){
+    resizeCanvases();
+    const pr = pitchRect(); const gb = goalBox();
+    ball.style.opacity = '1';
+    setBall(pr.width/2, pr.height-128);
+    setKeeperCenter(gb.left + gb.width/2, 'none', gb.top + 58);
+    keeper.className = ''; keeper.querySelector('.keeper-head').textContent = '😐';
+    $('feedback').classList.remove('show');
+    dragCtx.clearRect(0,0,pr.width,pr.height);
+    $('power-row').classList.remove('show'); $('power-fill').style.width = '0%';
+    $('target-grid').classList.remove('show');
+  }
+
+  function buildGameState(){
+    return {
+      phase:'shoot', round:1, you:0, cpu:0, sudden:false, animating:false, paused:false,
+      timerLeft:CONFIG.TURN_MS, timerInterval:null, cleanup:null,
+      playerMarks:[], cpuMarks:[], playerSaveMarks:[], lastDrag:null, gkX:null,
+      startedAt: Date.now()
+    };
+  }
+
+  function startGame(){
+    playTone('tap');
+    G = buildGameState();
+    goTo('s-game');
+    resetActors(); updateHUD();
+    setTimeout(setupTurn, 80);
+  }
+  function clearTimer(){
+    if(G && G.timerInterval){clearInterval(G.timerInterval);G.timerInterval=null;}
+    $('timer-fill').style.width = '100%'; $('timer-fill').style.background = 'var(--accent)';
+  }
+  function cleanupInput(){
+    if(G && G.cleanup){G.cleanup();G.cleanup=null;}
+    dragCtx.clearRect(0,0,pitchRect().width,pitchRect().height);
+  }
+
+  function updateHUD(){
+    if(!G) return;
+    $('h-you').textContent = G.you; $('h-cpu').textContent = G.cpu;
+    $('btn-status').textContent = G.sudden ? 'Muerte súbita' : `Ronda ${G.round}`;
+    const phaseText = G.phase === 'shoot' ? '⚽ Tiro' : '🧤 Atajada';
+    $('phase-badge').textContent = G.sudden ? `${phaseText} · muerte súbita` : `${phaseText} ${G.round} de ${CONFIG.MAX_ROUNDS}`;
+    $('mini-state').textContent = G.phase === 'shoot' ? 'Tira tú' : 'Dispara la CPU';
+    const wrap = $('dots-wrap'); wrap.innerHTML = '';
+    wrap.appendChild(dotLine('TÚ', G.playerMarks, G.phase==='shoot'));
+    wrap.appendChild(dotLine('CPU', G.cpuMarks, G.phase==='defend'));
+  }
+  function dotLine(name, marks, isCurrent){
+    const line = document.createElement('div'); line.className = 'dots-line';
+    const label = document.createElement('div'); label.className = 'dots-name'; label.textContent = name; line.appendChild(label);
+    const count = Math.max(CONFIG.MAX_ROUNDS, marks.length + (isCurrent ? 1 : 0));
+    for(let i=0;i<count;i++){
+      const d = document.createElement('div'); d.className = 'sdot';
+      if(marks[i] === 'goal') d.classList.add('scored');
+      else if(marks[i] === 'miss') d.classList.add('missed');
+      else if(i === marks.length && isCurrent) d.classList.add('current');
+      line.appendChild(d);
+    }
+    return line;
+  }
+
+  function setupTurn(){
+    if(!G) return;
+    clearTimer(); cleanupInput(); resetActors(); updateHUD();
+    G.animating = false; G.timerLeft = CONFIG.TURN_MS; G.gkX = keeperCenter().x;
+    if(G.phase === 'shoot'){
+      $('inst-icon').textContent = '👆'; $('inst-text').textContent = 'Arrastra el balón hacia la portería'; $('target-grid').classList.add('show');
+      setupBallDrag(); startTimer(() => executePlayerShot(G.lastDrag || randomDrag()));
+    }else{
+      $('inst-icon').textContent = '🧤'; $('inst-text').textContent = 'Mueve al portero y espera el disparo';
+      setupKeeperDrag(); startTimer(() => executeCpuShot());
+    }
+  }
+  function startTimer(onEnd){
+    clearTimer();
+    const fill = $('timer-fill'); fill.style.width='100%'; fill.style.background='var(--accent)';
+    G.timerInterval = setInterval(()=>{
+      if(G.animating || G.paused) return;
+      G.timerLeft -= CONFIG.TICK_MS;
+      const pct = clamp(G.timerLeft/CONFIG.TURN_MS*100,0,100);
+      fill.style.width = pct+'%';
+      fill.style.background = pct < 25 ? 'var(--danger)' : pct < 50 ? 'var(--warning)' : 'var(--accent)';
+      if(G.timerLeft <= 0){clearTimer();cleanupInput();onEnd();}
+    }, CONFIG.TICK_MS);
+  }
+
+  function pointerPoint(e){
+    const r = pitchRect();
+    return {x:e.clientX-r.left,y:e.clientY-r.top};
+  }
+  function setupBallDrag(){
+    let dragging=false, start=null, current=null;
+    const startCenter = ballCenter();
+    function onDown(e){
+      if(G.animating) return;
+      const p = pointerPoint(e);
+      if(Math.hypot(p.x-startCenter.x,p.y-startCenter.y) > 54) return;
+      dragging=true; start=startCenter; current=p; G.lastDrag=null;
+      ball.setPointerCapture?.(e.pointerId); playTone('tap'); e.preventDefault();
+    }
+    function onMove(e){
+      if(!dragging || G.animating) return;
+      current = pointerPoint(e);
+      const dx = current.x-start.x, dy = current.y-start.y;
+      const power = clamp(Math.hypot(dx,dy)/170,0,1);
+      G.lastDrag = {dx,dy,power};
+      $('power-row').classList.add('show'); $('power-fill').style.width = Math.round(power*100)+'%';
+      drawAim(start.x,start.y,current.x,current.y,power); e.preventDefault();
+    }
+    function onUp(e){
+      if(!dragging) return;
+      dragging=false; cleanupInput(); clearTimer(); executePlayerShot(G.lastDrag || randomDrag()); e.preventDefault();
+    }
+    ball.addEventListener('pointerdown', onDown);
+    window.addEventListener('pointermove', onMove, {passive:false});
+    window.addEventListener('pointerup', onUp, {passive:false});
+    G.cleanup = () => {ball.removeEventListener('pointerdown', onDown);window.removeEventListener('pointermove', onMove);window.removeEventListener('pointerup', onUp);};
+  }
+  function drawAim(x1,y1,x2,y2,power){
+    const pr = pitchRect(); dragCtx.clearRect(0,0,pr.width,pr.height); dragCtx.save();
+    dragCtx.strokeStyle = power > .78 ? 'rgba(255,77,109,.85)' : power > .48 ? 'rgba(255,214,10,.85)' : 'rgba(0,229,160,.85)';
+    dragCtx.lineWidth = 3; dragCtx.setLineDash([8,6]); dragCtx.lineCap='round';
+    dragCtx.beginPath(); dragCtx.moveTo(x1,y1); dragCtx.lineTo(x2,y2); dragCtx.stroke(); dragCtx.setLineDash([]);
+    const ang = Math.atan2(y2-y1,x2-x1); dragCtx.fillStyle = dragCtx.strokeStyle;
+    dragCtx.beginPath(); dragCtx.moveTo(x2,y2); dragCtx.lineTo(x2-17*Math.cos(ang-.45),y2-17*Math.sin(ang-.45)); dragCtx.lineTo(x2-17*Math.cos(ang+.45),y2-17*Math.sin(ang+.45)); dragCtx.closePath(); dragCtx.fill(); dragCtx.restore();
+  }
+  function setupKeeperDrag(){
+    let dragging=false, startX=0, currentX=keeperCenter().x;
+    function setByClientX(clientX){
+      const r = pitchRect(); const x = clientX-r.left; currentX = setKeeperCenter(x, 'left .04s linear'); G.gkX = currentX;
+    }
+    function onDown(e){dragging=true;startX=e.clientX;setByClientX(e.clientX);keeper.setPointerCapture?.(e.pointerId);playTone('tap');e.preventDefault();}
+    function onMove(e){if(!dragging || G.animating) return; setByClientX(e.clientX); e.preventDefault();}
+    function onUp(e){dragging=false;}
+    function onPitchDown(e){
+      if(G.phase !== 'defend' || G.animating) return;
+      setByClientX(e.clientX);
+    }
+    keeper.addEventListener('pointerdown', onDown);
+    window.addEventListener('pointermove', onMove, {passive:false}); window.addEventListener('pointerup', onUp);
+    pitch.addEventListener('pointerdown', onPitchDown);
+    G.cleanup = () => {keeper.removeEventListener('pointerdown', onDown);window.removeEventListener('pointermove', onMove);window.removeEventListener('pointerup', onUp);pitch.removeEventListener('pointerdown', onPitchDown);};
+  }
+
+  function randomDrag(){
+    const opts = [{dx:-120,dy:-230,power:.92},{dx:-60,dy:-240,power:.88},{dx:0,dy:-250,power:.9},{dx:70,dy:-238,power:.86},{dx:125,dy:-228,power:.9}];
+    return opts[Math.floor(Math.random()*opts.length)];
+  }
+  function shotTargetFromDrag(drag){
+    const pr = pitchRect(), gb = goalBox(), start = ballCenter();
+    const upward = drag.dy < -42;
+    const rawPower = clamp(drag.power || Math.hypot(drag.dx,drag.dy)/170, .18, 1.15);
+    const targetX = start.x + drag.dx * 1.08 + rnd(-12,12) * (1.1-rawPower);
+    const targetY = gb.bottom - gb.height*(.62 + rawPower*.34) + drag.dy * .04 + rnd(-7,8);
+    const weak = rawPower < .32 || !upward;
+    return {x:clamp(targetX, -18, pr.width+18), y: weak ? gb.bottom + rnd(34,85) : clamp(targetY, gb.top+10, gb.bottom-9), power:rawPower, weak};
+  }
+  function cpuKeeperDecision(target){
+    const gb = goalBox();
+    const difficulty = currentMode === 'pro' ? .72 : .55;
+    const readsShot = Math.random() < difficulty;
+    const reactionError = currentMode === 'pro' ? rnd(-30,30) : rnd(-55,55);
+    const randomSpot = gb.left + rnd(32, gb.width-32);
+    return clamp((readsShot ? target.x : randomSpot) + reactionError, gb.left+28, gb.right-28);
+  }
+  async function executePlayerShot(drag){
+    if(G.animating) return;
+    G.animating=true; clearTimer(); cleanupInput(); $('target-grid').classList.remove('show');
+    const target = shotTargetFromDrag(drag);
+    const gb = goalBox(); const start = ballCenter(); const kTarget = cpuKeeperDecision(target);
+    const inGoal = target.x > gb.left+4 && target.x < gb.right-4 && target.y > gb.top+4 && target.y < gb.bottom+8 && !target.weak;
+    const distanceToKeeper = Math.abs(target.x - kTarget) + Math.max(0, Math.abs(target.y-(gb.top+58))-34)*.4;
+    const cornerBonus = (target.x < gb.left+45 || target.x > gb.right-45 || target.y < gb.top+32) ? -16 : 0;
+    const saveThreshold = currentMode === 'pro' ? 46 : 40;
+    const saved = inGoal && (distanceToKeeper + cornerBonus) < saveThreshold;
+    if(kTarget < keeperCenter().x-10) keeper.classList.add('dive-left'); else if(kTarget > keeperCenter().x+10) keeper.classList.add('dive-right');
+    keeper.classList.add('stretch'); setKeeperCenter(kTarget, 'left .42s cubic-bezier(.18,.8,.25,1), transform .35s ease');
+    const spin = drag.dx * 2.2;
+    setBall(start.x,start.y,'none',1,0);
+    await wait(25);
+    setBall(target.x,target.y,'left .54s cubic-bezier(.15,.85,.3,1), top .54s cubic-bezier(.15,.85,.3,1), transform .54s ease',.58,spin);
+    await wait(570);
+    if(inGoal && !saved){
+      G.you++; G.playerMarks.push('goal'); updateStats('shotGoal'); keeper.querySelector('.keeper-head').textContent='😱'; showFeedback('⚽','¡Gooool!',true); playTone('goal'); burst(target.x,target.y,'goal');
+    }else if(saved){
+      G.playerMarks.push('miss'); updateStats('shotMiss'); keeper.querySelector('.keeper-head').textContent='😎'; showFeedback('🧤','Atajado',false); playTone('save'); burst(target.x,target.y,'save');
+    }else{
+      G.playerMarks.push('miss'); updateStats('shotMiss'); keeper.querySelector('.keeper-head').textContent='😮'; showFeedback(target.weak?'🫠':'❌',target.weak?'Muy suave':'Fuera',false); playTone('miss');
+    }
+    updateHUD();
+    await wait(1250);
+    afterTurn();
+  }
+
+  function cpuShotTarget(){
+    const gb = goalBox();
+    const zones = [gb.left+34, gb.left+gb.width*.30, gb.left+gb.width*.50, gb.left+gb.width*.70, gb.right-34];
+    const x = zones[Math.floor(Math.random()*zones.length)] + rnd(-12,12);
+    const y = Math.random()<.52 ? gb.top+rnd(18,42) : gb.top+rnd(58,91);
+    return {x,y};
+  }
+  async function executeCpuShot(){
+    if(G.animating) return;
+    G.animating=true; clearTimer(); cleanupInput();
+    const pr = pitchRect(), gb = goalBox();
+    const start = {x:pr.width/2, y:pr.height-116};
+    const t = cpuShotTarget();
+    const k = keeperCenter();
+    const diff = Math.abs(t.x-k.x) + Math.max(0, Math.abs(t.y-k.y)-38)*.28;
+    const saveThreshold = currentMode === 'pro' ? 50 : 58;
+    const saved = diff < saveThreshold;
+    if(t.x < k.x-10) keeper.classList.add('dive-left'); else if(t.x > k.x+10) keeper.classList.add('dive-right');
+    keeper.classList.add('stretch');
+    setBall(start.x,start.y,'none',1,0); await wait(25);
+    setBall(t.x,t.y,'left .50s cubic-bezier(.12,.85,.3,1), top .50s cubic-bezier(.12,.85,.3,1), transform .50s ease',.60,rnd(-260,260));
+    await wait(540);
+    const inGoal = t.x > gb.left && t.x < gb.right;
+    if(saved && inGoal){
+      G.cpuMarks.push('miss'); G.playerSaveMarks.push('save'); updateStats('save'); keeper.querySelector('.keeper-head').textContent='😄'; showFeedback('🙌','¡Atajada!',true); playTone('save'); burst(t.x,t.y,'save');
+    }else if(inGoal){
+      G.cpu++; G.cpuMarks.push('goal'); G.playerSaveMarks.push('miss'); updateStats('defendMiss'); keeper.querySelector('.keeper-head').textContent='😓'; showFeedback('⚽','CPU anota',false); playTone('goal'); burst(t.x,t.y,'goal');
+    }else{
+      G.cpuMarks.push('miss'); G.playerSaveMarks.push('save'); updateStats('save'); keeper.querySelector('.keeper-head').textContent='😌'; showFeedback('✅','Fuera del marco',true); playTone('miss');
+    }
+    updateHUD();
+    await wait(1250);
+    afterTurn();
+  }
+
+  function updateStats(type){
+    const s = loadStats();
+    if(type === 'shotGoal'){s.shots++;s.goals++;}
+    if(type === 'shotMiss'){s.shots++;}
+    if(type === 'save'){s.defends++;s.saves++;}
+    if(type === 'defendMiss'){s.defends++;}
+    saveStats(s); updateHomeStats();
+  }
+  function canEndEarly(){
+    if(G.sudden) return false;
+    const yourRemaining = CONFIG.MAX_ROUNDS - G.playerMarks.length;
+    const cpuRemaining = CONFIG.MAX_ROUNDS - G.cpuMarks.length;
+    return G.you > G.cpu + cpuRemaining || G.cpu > G.you + yourRemaining;
+  }
+  function afterTurn(){
+    if(canEndEarly()) return endGame();
+    if(G.phase === 'shoot'){
+      G.phase = 'defend';
+    }else{
+      if(G.sudden){
+        const p = G.playerMarks[G.playerMarks.length-1], c = G.cpuMarks[G.cpuMarks.length-1];
+        if(p !== c) return endGame();
+      }
+      G.round++;
+      if(G.round > CONFIG.MAX_ROUNDS && !G.sudden){
+        if(G.you !== G.cpu) return endGame();
+        G.sudden = true; toast('Muerte súbita activada');
+      }
+      G.phase = 'shoot';
+    }
+    setTimeout(setupTurn, 250);
+  }
+
+  function showFeedback(icon,text,good){
+    const fb = $('feedback'); const pill = fb.querySelector('.fb-pill');
+    $('fb-icon').textContent = icon; $('fb-text').textContent = text;
+    pill.style.borderColor = good ? 'rgba(0,229,160,.35)' : 'rgba(255,77,109,.35)';
+    fb.classList.add('show'); setTimeout(()=>fb.classList.remove('show'), 1180);
+  }
+  function burst(x,y,type){
+    const colors = type === 'goal' ? ['#00e5a0','#ffd60a','#ffffff'] : ['#ffffff','#ffdc4a','#00e5a0'];
+    for(let i=0;i<34;i++) particles.push({x,y,vx:rnd(-3.2,3.2),vy:rnd(-4.2,1.8),life:rnd(24,42),r:rnd(2,4.5),c:colors[Math.floor(Math.random()*colors.length)]});
+    animateParticles();
+  }
+  function animateParticles(){
+    if(rafParticles) return;
+    const loop = () => {
+      const pr = pitchRect(); fxCtx.clearRect(0,0,pr.width,pr.height);
+      particles = particles.filter(p => p.life-- > 0);
+      particles.forEach(p => {p.x+=p.vx;p.y+=p.vy;p.vy+=.12;fxCtx.globalAlpha=clamp(p.life/38,0,1);fxCtx.fillStyle=p.c;fxCtx.beginPath();fxCtx.arc(p.x,p.y,p.r,0,Math.PI*2);fxCtx.fill();});
+      fxCtx.globalAlpha=1;
+      if(particles.length) rafParticles = requestAnimationFrame(loop); else {cancelAnimationFrame(rafParticles);rafParticles=0;}
+    };
+    rafParticles = requestAnimationFrame(loop);
+  }
+
+  function finalRows(){
+    const totalShots = G.playerMarks.length;
+    const totalCpu = G.cpuMarks.length;
+    const acc = totalShots ? Math.round(G.you/totalShots*100) : 0;
+    const saves = G.playerSaveMarks.filter(x=>x==='save').length;
+    const saveRate = totalCpu ? Math.round(saves/totalCpu*100) : 0;
+    const reward = getDeviceReward();
+    return `<div class="final-row"><span>Rondas jugadas</span><b>${Math.max(totalShots,totalCpu)}</b></div><div class="final-row"><span>Efectividad de tiro</span><b>${acc}%</b></div><div class="final-row"><span>Atajadas</span><b>${saves}/${totalCpu} · ${saveRate}%</b></div><div class="final-row"><span>Dificultad</span><b>${currentMode === 'pro' ? 'Pro' : 'Normal'}</b></div><div class="final-row"><span>Dispositivo</span><b>${reward.name}</b></div>`;
+  }
+  function endGame(){
+    clearTimer(); cleanupInput();
+    const win = G.you > G.cpu;
+    const s = loadStats();
+    s.plays++; if(win) s.wins++; s.bestDiff = Math.max(s.bestDiff, G.you-G.cpu); saveStats(s); updateHomeStats();
+    $('e-you').textContent = G.you; $('e-cpu').textContent = G.cpu;
+    $('final-detail').innerHTML = finalRows();
+    const icon = $('result-icon'), title = $('result-title'), sub = $('result-sub'), qr = $('qr-card');
+    icon.className = 'result-icon-wrap ' + (win ? 'win-icon-wrap' : 'lose-icon-wrap');
+    title.className = 'result-title ' + (win ? 'win-title' : 'lose-title');
+    if(win){
+      const reward = getDeviceReward();
+      icon.textContent='🏆'; title.textContent='¡Ganaste!'; sub.textContent='Reclama tu recompensa'; qr.classList.remove('hidden');
+      document.querySelector('.qr-title').textContent = reward.qrTitle || '🎁 Claim your reward';
+      document.querySelector('.qr-claim').textContent = reward.claimText || 'Scan to claim your reward';
+      const qrFrame = document.querySelector('.qr-frame');
+      if(reward.qrImage){
+        qrFrame.style.display = 'flex';
+        $('qr-img').src = reward.qrImage;
+        $('qr-img').alt = 'QR de recompensa para ' + (reward.name || reward.id);
+        $('qr-hint').textContent = reward.name || reward.hint || reward.id;
+      }else{
+        qrFrame.style.display = 'none';
+        $('qr-img').removeAttribute('src');
+        $('qr-hint').textContent = reward.hint || 'Device not configured';
+      }
+      playTone('win');
+    }else{
+      icon.textContent='😤'; title.textContent='Try Again'; sub.textContent='Estuvo cerca, dale revancha'; qr.classList.add('hidden'); playTone('lose');
+    }
+    goTo('s-end');
+  }
+
+  function togglePause(force){
+    if(!G || !$('s-game').classList.contains('active')) return;
+    G.paused = typeof force === 'boolean' ? force : !G.paused;
+    $('pause-modal').classList.toggle('show', G.paused);
+  }
+  function quitToMenu(){
+    if(G){clearTimer(); cleanupInput(); G = null;}
+    $('pause-modal').classList.remove('show'); goTo('s-start'); updateHomeStats();
+  }
+
+  document.querySelectorAll('.mode-btn').forEach(btn=>btn.addEventListener('click',()=>{
+    document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active'); currentMode = btn.dataset.mode; playTone('tap');
+  }));
+  $('btn-start').addEventListener('click', startGame);
+  $('btn-rematch').addEventListener('click', startGame);
+  $('btn-menu').addEventListener('click', () => {goTo('s-start');updateHomeStats();});
+  $('btn-home').addEventListener('click', () => togglePause(true));
+  $('btn-resume').addEventListener('click', () => togglePause(false));
+  $('btn-quit').addEventListener('click', quitToMenu);
+  $('btn-mute').addEventListener('click', () => {muted=!muted;$('btn-mute').textContent=muted?'🔇':'🔊';toast(muted?'Sonido apagado':'Sonido encendido');});
+  $('btn-reset-stats').addEventListener('click', () => {localStorage.removeItem(CONFIG.STORAGE_KEY);updateHomeStats();toast('Ranking local borrado');});
+  document.addEventListener('keydown', e => {
+    if(e.code === 'Space'){e.preventDefault(); togglePause();}
+    if(!G || G.phase !== 'defend' || G.animating || G.paused) return;
+    const k = keeperCenter();
+    if(e.code === 'ArrowLeft'){G.gkX = setKeeperCenter(k.x-28,'left .08s linear');}
+    if(e.code === 'ArrowRight'){G.gkX = setKeeperCenter(k.x+28,'left .08s linear');}
+  });
+
+  updateHomeStats();
+  resizeCanvases();
+})();
+</script>
+</body>
+</html>
